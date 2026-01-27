@@ -1,22 +1,36 @@
-import { withPayload } from '@payloadcms/next/withPayload'
-
-/** @type {import('next').NextConfig} */
+import { withPayload } from "@payloadcms/next/withPayload";
 const nextConfig = {
-  // Your Next.js config here
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "antree.com",
+        port: "3000",
+        pathname: "/api/media/**",
+      },
+      /*
+      {
+        protocol: 'https',
+        hostname: 'antree.com',
+        pathname: '/api/media/**',
+      },
+      */
+    ],
+  },
   async rewrites() {
     return [
       {
-        source: '/((?!admin|api))tenant-domains/:path*',
-        destination: '/tenant-domains/:tenant/:path*',
+        source: "/((?!admin|api))/:path*",
+        destination: "/:tenant/:path*",
         has: [
           {
-            type: 'host',
-            value: '(?<tenant>.*)',
+            type: "host",
+            value: "(?<tenant>.*)",
           },
         ],
       },
-    ]
+    ];
   },
-}
+};
 
-export default withPayload(nextConfig)
+export default withPayload(nextConfig);

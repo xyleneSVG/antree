@@ -1,48 +1,15 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig } from "payload";
 
-import { createAccess } from './access/create'
-import { readAccess } from './access/read'
-import { updateAndDeleteAccess } from './access/updateAndDelete'
-import { externalUsersLogin } from './endpoints/externalUsersLogin'
-import { ensureUniqueUsername } from './hooks/ensureUniqueUsername'
-import { isSuperAdmin } from '@/access/isSuperAdmin'
-import { setCookieBasedOnDomain } from './hooks/setCookieBasedOnDomain'
-import { tenantsArrayField } from '@payloadcms/plugin-multi-tenant/fields'
-
-const defaultTenantArrayField = tenantsArrayField({
-  tenantsArrayFieldName: 'tenants',
-  tenantsArrayTenantFieldName: 'tenant',
-  tenantsCollectionSlug: 'tenants',
-  arrayFieldAccess: {},
-  tenantFieldAccess: {},
-  rowFields: [
-    {
-      name: 'roles',
-      type: 'select',
-      defaultValue: ['tenant-viewer'],
-      hasMany: true,
-      options: ['tenant-admin', 'tenant-viewer'],
-      required: true,
-      access: {
-        update: ({ req }) => {
-          const { user } = req
-          if (!user) {
-            return false
-          }
-
-          if (isSuperAdmin(user)) {
-            return true
-          }
-
-          return true
-        },
-      },
-    },
-  ],
-})
+import { createAccess } from "./access/create";
+import { readAccess } from "./access/read";
+import { updateAndDeleteAccess } from "./access/updateAndDelete";
+import { externalResourcesLogin } from "./endpoints/externalResourcesLogin";
+import { ensureUniqueUsername } from "./hooks/ensureUniqueUsername";
+import { isSuperAdmin } from "@/access/isSuperAdmin";
+import { setCookieBasedOnDomain } from "./hooks/setCookieBasedOnDomain";
 
 const Users: CollectionConfig = {
-  slug: 'users',
+  slug: "users",
   access: {
     create: createAccess,
     delete: updateAndDeleteAccess,
@@ -50,70 +17,83 @@ const Users: CollectionConfig = {
     update: updateAndDeleteAccess,
   },
   admin: {
-    useAsTitle: 'email',
+    useAsTitle: "email",
   },
   auth: true,
-  endpoints: [externalUsersLogin],
+  endpoints: [externalResourcesLogin],
   fields: [
     {
-      type: 'text',
-      name: 'password',
+      type: "text",
+      name: "password",
       hidden: true,
       access: {
-        read: () => false, // Hide password field from read access
+        read: () => false,
         update: ({ req, id }) => {
-          const { user } = req
+          const { user } = req;
           if (!user) {
-            return false
+            return false;
           }
 
           if (id === user.id) {
-            // Allow user to update their own password
-            return true
+            return true;
           }
 
-          return isSuperAdmin(user)
+          return isSuperAdmin(user);
         },
       },
     },
     {
       admin: {
-        position: 'sidebar',
+        position: "sidebar",
       },
-      name: 'roles',
-      type: 'select',
-      defaultValue: ['user'],
+      name: "roles",
+      type: "select",
+      defaultValue: ["user"],
       hasMany: true,
-      options: ['super-admin', 'user'],
+      options: ["super-admin", "user"],
       access: {
         update: ({ req }) => {
-          return isSuperAdmin(req.user)
+          return isSuperAdmin(req.user);
         },
       },
     },
+
     {
-      name: 'username',
-      type: 'text',
+      name: "username",
+      type: "text",
       hooks: {
         beforeValidate: [ensureUniqueUsername],
       },
       index: true,
+      admin: {
+        condition: (data) => {
+          return data?.roles?.includes("user");
+        },
+      },
     },
     {
-      ...defaultTenantArrayField,
+      name: "specialty",
+      type: "text",
       admin: {
-        ...(defaultTenantArrayField?.admin || {}),
-        position: 'sidebar',
+        condition: (data) => {
+          return data?.roles?.includes("user");
+        },
+      },
+    },
+    {
+      name: "isActive",
+      type: "checkbox",
+      defaultValue: true,
+      admin: {
+        condition: (data) => {
+          return data?.roles?.includes("user");
+        },
       },
     },
   ],
-  // The following hook sets a cookie based on the domain a user logs in from.
-  // It checks the domain and matches it to a tenant in the system, then sets
-  // a 'payload-tenant' cookie for that tenant.
-
   hooks: {
     afterLogin: [setCookieBasedOnDomain],
   },
-}
+};
 
-export default Users
+export default Users;

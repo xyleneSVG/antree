@@ -54,6 +54,7 @@ export type SupportedTimezones =
   | 'Asia/Singapore'
   | 'Asia/Tokyo'
   | 'Asia/Seoul'
+  | 'Australia/Brisbane'
   | 'Australia/Sydney'
   | 'Pacific/Guam'
   | 'Pacific/Noumea'
@@ -66,18 +67,26 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    pages: Page;
-    users: User;
     tenants: Tenant;
+    users: User;
+    services: Service;
+    schedules: Schedule;
+    bookings: Booking;
+    media: Media;
+    'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    pages: PagesSelect<false> | PagesSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
+    schedules: SchedulesSelect<false> | SchedulesSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -85,6 +94,7 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
+  fallbackLocale: null;
   globals: {};
   globalsSelect: {};
   locale: null;
@@ -116,37 +126,48 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "tenants".
  */
-export interface Page {
+export interface Tenant {
   id: number;
-  tenant?: (number | null) | Tenant;
-  title?: string | null;
-  slug?: string | null;
+  logo: number | Media;
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  bookingModel: 'single' | 'multi';
+  operatingHours?:
+    | {
+        dayOfWeek: '0' | '1' | '2' | '3' | '4' | '5' | '6';
+        isClosed?: boolean | null;
+        open?: string | null;
+        close?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  domain: string;
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenants".
+ * via the `definition` "media".
  */
-export interface Tenant {
+export interface Media {
   id: number;
-  name: string;
-  /**
-   * Used for domain-based tenant handling
-   */
-  domain?: string | null;
-  /**
-   * Used for url paths, example: /tenant-slug/page-slug
-   */
-  slug: string;
-  /**
-   * If checked, logging in is not required to read. Useful for building public pages.
-   */
-  allowPublicRead?: boolean | null;
+  tenant?: (number | null) | Tenant;
   updatedAt: string;
   createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -154,8 +175,12 @@ export interface Tenant {
  */
 export interface User {
   id: number;
+  tenant?: (number | null) | Tenant;
+  password?: string | null;
   roles?: ('super-admin' | 'user')[] | null;
   username?: string | null;
+  specialty?: string | null;
+  isActive?: boolean | null;
   tenants?:
     | {
         tenant: number | Tenant;
@@ -172,7 +197,90 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  password?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  name: string;
+  description?: string | null;
+  durationMinutes: number;
+  price: number;
+  category?: string | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "schedules".
+ */
+export interface Schedule {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  resource: number | User;
+  weeklySchedule?:
+    | {
+        dayOfWeek: '0' | '1' | '2' | '3' | '4' | '5' | '6';
+        startTime: string;
+        endTime: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  bookingCode: string;
+  resource: number | User;
+  service: number | Service;
+  customer: {
+    name: string;
+    phone: string;
+    email: string;
+    address?: string | null;
+    notes?: string | null;
+  };
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  status?: ('pending' | 'confirmed' | 'cancelled' | 'completed') | null;
+  totalAmount: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: number;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -182,16 +290,28 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'pages';
-        value: number | Page;
+        relationTo: 'tenants';
+        value: number | Tenant;
       } | null)
     | ({
         relationTo: 'users';
         value: number | User;
       } | null)
     | ({
-        relationTo: 'tenants';
-        value: number | Tenant;
+        relationTo: 'services';
+        value: number | Service;
+      } | null)
+    | ({
+        relationTo: 'schedules';
+        value: number | Schedule;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -237,12 +357,26 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
+ * via the `definition` "tenants_select".
  */
-export interface PagesSelect<T extends boolean = true> {
-  tenant?: T;
-  title?: T;
-  slug?: T;
+export interface TenantsSelect<T extends boolean = true> {
+  logo?: T;
+  name?: T;
+  description?: T;
+  address?: T;
+  phone?: T;
+  email?: T;
+  bookingModel?: T;
+  operatingHours?:
+    | T
+    | {
+        dayOfWeek?: T;
+        isClosed?: T;
+        open?: T;
+        close?: T;
+        id?: T;
+      };
+  domain?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -251,8 +385,12 @@ export interface PagesSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  tenant?: T;
+  password?: T;
   roles?: T;
   username?: T;
+  specialty?: T;
+  isActive?: T;
   tenants?:
     | T
     | {
@@ -269,18 +407,98 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenants_select".
+ * via the `definition` "services_select".
  */
-export interface TenantsSelect<T extends boolean = true> {
+export interface ServicesSelect<T extends boolean = true> {
+  tenant?: T;
   name?: T;
-  domain?: T;
-  slug?: T;
-  allowPublicRead?: T;
+  description?: T;
+  durationMinutes?: T;
+  price?: T;
+  category?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "schedules_select".
+ */
+export interface SchedulesSelect<T extends boolean = true> {
+  tenant?: T;
+  resource?: T;
+  weeklySchedule?:
+    | T
+    | {
+        dayOfWeek?: T;
+        startTime?: T;
+        endTime?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  tenant?: T;
+  bookingCode?: T;
+  resource?: T;
+  service?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        phone?: T;
+        email?: T;
+        address?: T;
+        notes?: T;
+      };
+  bookingDate?: T;
+  startTime?: T;
+  endTime?: T;
+  status?: T;
+  totalAmount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

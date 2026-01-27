@@ -1,4 +1,4 @@
-# Payload Multi-Tenant Example
+# Payload Multi-Tenant
 
 This example demonstrates how to achieve a multi-tenancy in [Payload](https://github.com/payloadcms/payload). Tenants are separated by a `Tenants` collection.
 

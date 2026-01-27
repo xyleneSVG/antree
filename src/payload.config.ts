@@ -1,69 +1,99 @@
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import { postgresAdapter } from '@payloadcms/db-postgres'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import path from 'path'
-import { buildConfig } from 'payload'
-import { fileURLToPath } from 'url'
+import { sqliteAdapter } from "@payloadcms/db-sqlite";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import path from "path";
+import { buildConfig } from "payload";
+import { fileURLToPath } from "url";
+import { multiTenantPlugin } from "@payloadcms/plugin-multi-tenant";
 
-import { Pages } from './collections/Pages'
-import { Tenants } from './collections/Tenants'
-import Users from './collections/Users'
-import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
-import { isSuperAdmin } from './access/isSuperAdmin'
-import type { Config } from './payload-types'
-import { getUserTenantIDs } from './utilities/getUserTenantIDs'
-import { seed } from './seed'
+import { Tenants } from "./collections/Tenants";
+import { Media } from "./collections/Media";
+import Users from "./collections/Users";
+import { Services } from "./collections/Services";
+import { Schedules } from "./collections/Schedules";
+import { Bookings } from "./collections/Bookings";
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+import { isSuperAdmin } from "./access/isSuperAdmin";
+import type { Config } from "./payload-types";
 
-// eslint-disable-next-line no-restricted-exports
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+
 export default buildConfig({
   admin: {
-    user: 'users',
+    user: "users",
+    components: {
+      beforeDashboard: ["src/components/admin/tenant-welcome#TenantWelcome"],
+    },
   },
-  collections: [Pages, Users, Tenants],
-  // db: mongooseAdapter({
-  //   url: process.env.DATABASE_URL as string,
-  // }),
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.POSTGRES_URL,
+  collections: [
+    Tenants,
+    Users,
+    Services,
+    Schedules,
+    Bookings,
+    Media,
+  ],
+  db: sqliteAdapter({
+    client: {
+      url: process.env.DATABASE_URL || "file:./payload.db",
     },
   }),
-  onInit: async (args) => {
-    if (process.env.SEED_DB) {
-      await seed(args)
-    }
-  },
   editor: lexicalEditor({}),
   graphQL: {
-    schemaOutputFile: path.resolve(dirname, 'generated-schema.graphql'),
+    schemaOutputFile: path.resolve(dirname, "generated-schema.graphql"),
   },
   secret: process.env.PAYLOAD_SECRET as string,
   typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
+    outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   plugins: [
     multiTenantPlugin<Config>({
       collections: {
-        pages: {},
+        bookings: {},
+        services: {},
+        users: {},
+        media: {},
+        schedules: {},
       },
       tenantField: {
         access: {
           read: () => true,
           update: ({ req }) => {
             if (isSuperAdmin(req.user)) {
-              return true
+              return true;
             }
-            return getUserTenantIDs(req.user).length > 0
+            return false;
           },
         },
       },
       tenantsArrayField: {
-        includeDefaultField: false,
+        includeDefaultField: true,
+        rowFields: [
+          {
+            name: "roles",
+            type: "select",
+            defaultValue: ["tenant-viewer"],
+            hasMany: true,
+            options: ["tenant-admin", "tenant-viewer"],
+            required: true,
+            access: {
+              update: ({ req }) => {
+                const { user } = req;
+                if (!user) {
+                  return false;
+                }
+
+                if (isSuperAdmin(user)) {
+                  return true;
+                }
+
+                return true;
+              },
+            },
+          },
+        ],
       },
       userHasAccessToAllTenants: (user) => isSuperAdmin(user),
     }),
   ],
-})
+});
