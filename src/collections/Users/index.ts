@@ -3,7 +3,7 @@ import type { CollectionConfig } from "payload";
 import { createAccess } from "./access/create";
 import { readAccess } from "./access/read";
 import { updateAndDeleteAccess } from "./access/updateAndDelete";
-import { externalResourcesLogin } from "./endpoints/externalResourcesLogin";
+import { externalUsersLogin } from "./endpoints/externalUsersLogin";
 import { ensureUniqueUsername } from "./hooks/ensureUniqueUsername";
 import { isSuperAdmin } from "@/access/isSuperAdmin";
 import { setCookieBasedOnDomain } from "./hooks/setCookieBasedOnDomain";
@@ -20,7 +20,7 @@ const Users: CollectionConfig = {
     useAsTitle: "email",
   },
   auth: true,
-  endpoints: [externalResourcesLogin],
+  endpoints: [externalUsersLogin],
   fields: [
     {
       type: "text",
@@ -30,14 +30,8 @@ const Users: CollectionConfig = {
         read: () => false,
         update: ({ req, id }) => {
           const { user } = req;
-          if (!user) {
-            return false;
-          }
-
-          if (id === user.id) {
-            return true;
-          }
-
+          if (!user) return false;
+          if (id === user.id) return true;
           return isSuperAdmin(user);
         },
       },
@@ -52,12 +46,16 @@ const Users: CollectionConfig = {
       hasMany: true,
       options: ["super-admin", "user"],
       access: {
-        update: ({ req }) => {
-          return isSuperAdmin(req.user);
+        update: async ({ req }) => {
+          if (isSuperAdmin(req.user)) return true;
+          if (!req.user) {
+            const count = await req.payload.count({ collection: "users" });
+            return count.totalDocs === 0;
+          }
+          return false;
         },
       },
     },
-
     {
       name: "username",
       type: "text",

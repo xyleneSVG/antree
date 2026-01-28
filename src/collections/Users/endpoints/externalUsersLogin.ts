@@ -3,7 +3,7 @@ import type { Collection, Endpoint } from "payload";
 import { headersWithCors } from "@payloadcms/next/utilities";
 import { APIError, generatePayloadCookie } from "payload";
 
-export const externalResourcesLogin: Endpoint = {
+export const externalUsersLogin: Endpoint = {
   handler: async (req) => {
     let data: { [key: string]: string } = {};
 
@@ -132,5 +132,5 @@ export const externalResourcesLogin: Endpoint = {
     );
   },
   method: "post",
-  path: "/external-resources/login",
+  path: "/external-users/login",
 };

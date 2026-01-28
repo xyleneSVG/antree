@@ -51,7 +51,6 @@ export default buildConfig({
       collections: {
         bookings: {},
         services: {},
-        users: {},
         media: {},
         schedules: {},
       },

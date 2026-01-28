@@ -175,7 +175,6 @@ export interface Media {
  */
 export interface User {
   id: number;
-  tenant?: (number | null) | Tenant;
   password?: string | null;
   roles?: ('super-admin' | 'user')[] | null;
   username?: string | null;
@@ -385,7 +384,6 @@ export interface TenantsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  tenant?: T;
   password?: T;
   roles?: T;
   username?: T;
