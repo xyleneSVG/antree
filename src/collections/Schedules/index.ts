@@ -10,6 +10,7 @@ export const Schedules: CollectionConfig = {
   admin: {
     useAsTitle: "resource",
     defaultColumns: ["resource", "updatedAt"],
+    group: "Platform Settings",
   },
   fields: [
     {

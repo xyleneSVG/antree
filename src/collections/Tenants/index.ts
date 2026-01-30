@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload";
-
+import { colorPickerField } from "@innovixx/payload-color-picker-field";
 import { isSuperAdminAccess } from "@/access/isSuperAdmin";
 import { superAdminOrTenantAdminAccess } from "./access/superAdminOrTenantAdmin";
 import { ensureUniqueTenantName } from "./hooks/ensureUniqueName";
@@ -14,6 +14,7 @@ export const Tenants: CollectionConfig = {
   },
   admin: {
     useAsTitle: "name",
+    group: "Platform Settings",
   },
   fields: [
     {
@@ -37,6 +38,15 @@ export const Tenants: CollectionConfig = {
       type: "textarea",
       required: true,
     },
+    colorPickerField({
+      name: "accentColor",
+      label: "Accent Color",
+      required: true,
+      admin: {
+        position: "sidebar",
+        description: "Pilih warna aksen untuk tenant ini.",
+      },
+    }),
     {
       name: "address",
       type: "text",
@@ -53,26 +63,20 @@ export const Tenants: CollectionConfig = {
       required: true,
     },
     {
-      name: "bookingModel",
-      type: "select",
+      name: "domain",
+      type: "text",
       required: true,
-      defaultValue: "single",
-      options: [
-        {
-          label: "Single Service (1 Layanan per Booking)",
-          value: "single",
-        },
-        {
-          label:
-            "Multi Select / Cart (Bisa pilih banyak layanan dalam 1 Booking)",
-          value: "multi",
-        },
-      ],
+      admin: {
+        position: "sidebar",
+      },
     },
     {
       name: "operatingHours",
       type: "array",
       label: "Operating Hours",
+      admin: {
+        position: "sidebar",
+      },
       fields: [
         {
           type: "row",
@@ -122,11 +126,6 @@ export const Tenants: CollectionConfig = {
           ],
         },
       ],
-    },
-    {
-      name: "domain",
-      type: "text",
-      required: true,
     },
   ],
 };

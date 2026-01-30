@@ -1,10 +1,18 @@
+import { isTenantAdmin } from "@/access/isTenantAdmin";
 import type { CollectionConfig } from "payload";
 
 export const Services: CollectionConfig = {
   slug: "services",
   admin: {
     useAsTitle: "name",
-    defaultColumns: ["name", "tenant", "price", "isActive"],
+    defaultColumns: ["name", "price", "isActive"],
+    group: "Platform Settings",
+  },
+  access: {
+    read: ({ req: { user } }) => Boolean(user), 
+    create: isTenantAdmin,
+    update: isTenantAdmin,
+    delete: isTenantAdmin,
   },
   fields: [
     {

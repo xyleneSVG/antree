@@ -1,5 +1,11 @@
 import { formatMediaUrl } from "@/utilities/media-url-format";
-import type { Tenant, Service, Resource } from "@/types/booking";
+
+import type {
+  Tenant as BookingTenant,
+  Service,
+  Resource,
+} from "@/types/booking";
+import type { Tenant as PayloadTenant } from "@/payload-types";
 
 const getRelationId = (relation: any): string => {
   return typeof relation === "object" && relation?.id
@@ -27,16 +33,21 @@ export const mappingResource = (r: any): Resource => ({
   avatar: formatMediaUrl(r.avatar) || "/avatars/default.jpg",
 });
 
-export const mappingTenant = (data: any): Tenant => ({
+export const mappingTenant = (data: PayloadTenant): BookingTenant => ({
   id: String(data.id),
   name: data.name,
   domain: data.domain,
-  logo: formatMediaUrl(data.logo) || "/placeholder.png",
+
+  logo:
+    data.logo && typeof data.logo !== "number"
+      ? formatMediaUrl(data.logo) || "/placeholder.png"
+      : "/placeholder.png",
+
   description: data.description || `Selamat datang di ${data.name}`,
+  accentColor: data.accentColor || "#000000",
   address: data.address || "",
   phone: data.phone || "",
   email: data.email || "",
-  businessType: "other",
   operatingHours: (data.operatingHours || []).map((h: any) => ({
     dayOfWeek: parseInt(h.dayOfWeek),
     open: h.open || "",

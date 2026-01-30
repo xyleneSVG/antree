@@ -13,6 +13,9 @@ import { Schedules } from "./collections/Schedules";
 import { Bookings } from "./collections/Bookings";
 
 import { isSuperAdmin } from "./access/isSuperAdmin";
+
+import { isTenantAdmin } from "./access/isTenantAdmin";
+
 import type { Config } from "./payload-types";
 
 const filename = fileURLToPath(import.meta.url);
@@ -25,14 +28,7 @@ export default buildConfig({
       beforeDashboard: ["src/components/admin/tenant-welcome#TenantWelcome"],
     },
   },
-  collections: [
-    Tenants,
-    Users,
-    Services,
-    Schedules,
-    Bookings,
-    Media,
-  ],
+  collections: [Users, Tenants, Services, Schedules, Bookings, Media],
   db: sqliteAdapter({
     client: {
       url: process.env.DATABASE_URL || "file:./payload.db",
@@ -51,42 +47,53 @@ export default buildConfig({
       collections: {
         bookings: {},
         services: {},
-        media: {},
         schedules: {},
       },
       tenantField: {
         access: {
           read: () => true,
           update: ({ req }) => {
-            if (isSuperAdmin(req.user)) {
-              return true;
-            }
+            if (isSuperAdmin(req.user)) return true;
             return false;
           },
         },
       },
       tenantsArrayField: {
         includeDefaultField: true,
+
+        arrayFieldAccess: {
+          create: (args) => {
+            if (isSuperAdmin(args.req.user)) return true;
+            const { id, ...rest } = args;
+            const numericId = typeof id === "string" ? Number(id) : id;
+            const result = isTenantAdmin({ ...rest, id: numericId });
+            return typeof result === "boolean" ? result : false;
+          },
+          update: (args) => {
+            if (isSuperAdmin(args.req.user)) return true;
+            const { id, ...rest } = args;
+            const numericId = typeof id === "string" ? Number(id) : id;
+            const result = isTenantAdmin({ ...rest, id: numericId });
+            return typeof result === "boolean" ? result : false;
+          },
+        },
         rowFields: [
           {
             name: "roles",
             type: "select",
-            defaultValue: ["tenant-viewer"],
+            defaultValue: ["staff"],
             hasMany: true,
-            options: ["tenant-admin", "tenant-viewer"],
+            options: ["tenant-admin", "staff"],
             required: true,
+
             access: {
-              update: ({ req }) => {
-                const { user } = req;
-                if (!user) {
-                  return false;
-                }
+              update: (args) => {
+                if (isSuperAdmin(args.req.user)) return true;
 
-                if (isSuperAdmin(user)) {
-                  return true;
-                }
-
-                return true;
+                const { id, ...rest } = args;
+                const numericId = typeof id === "string" ? Number(id) : id;
+                const result = isTenantAdmin({ ...rest, id: numericId });
+                return typeof result === "boolean" ? result : false;
               },
             },
           },

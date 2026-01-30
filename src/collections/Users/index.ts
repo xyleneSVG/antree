@@ -1,5 +1,4 @@
 import type { CollectionConfig } from "payload";
-
 import { createAccess } from "./access/create";
 import { readAccess } from "./access/read";
 import { updateAndDeleteAccess } from "./access/updateAndDelete";
@@ -18,6 +17,8 @@ const Users: CollectionConfig = {
   },
   admin: {
     useAsTitle: "email",
+    group: "Resource Settings",
+    defaultColumns: ["email", "username"],
   },
   auth: true,
   endpoints: [externalUsersLogin],
@@ -36,24 +37,20 @@ const Users: CollectionConfig = {
         },
       },
     },
+
     {
-      admin: {
-        position: "sidebar",
-      },
       name: "roles",
       type: "select",
-      defaultValue: ["user"],
+      defaultValue: [],
       hasMany: true,
-      options: ["super-admin", "user"],
+      options: ["super-admin"],
+      admin: {
+        condition: ({ user }) => isSuperAdmin(user),
+      },
       access: {
-        update: async ({ req }) => {
-          if (isSuperAdmin(req.user)) return true;
-          if (!req.user) {
-            const count = await req.payload.count({ collection: "users" });
-            return count.totalDocs === 0;
-          }
-          return false;
-        },
+        create: ({ req }) => isSuperAdmin(req.user),
+        update: ({ req }) => isSuperAdmin(req.user),
+        read: ({ req }) => isSuperAdmin(req.user),
       },
     },
     {
@@ -63,18 +60,14 @@ const Users: CollectionConfig = {
         beforeValidate: [ensureUniqueUsername],
       },
       index: true,
-      admin: {
-        condition: (data) => {
-          return data?.roles?.includes("user");
-        },
-      },
     },
+
     {
       name: "specialty",
       type: "text",
       admin: {
         condition: (data) => {
-          return data?.roles?.includes("user");
+          return !data?.roles?.includes("super-admin");
         },
       },
     },
@@ -82,11 +75,6 @@ const Users: CollectionConfig = {
       name: "isActive",
       type: "checkbox",
       defaultValue: true,
-      admin: {
-        condition: (data) => {
-          return data?.roles?.includes("user");
-        },
-      },
     },
   ],
   hooks: {

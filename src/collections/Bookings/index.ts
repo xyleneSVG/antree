@@ -5,6 +5,7 @@ export const Bookings: CollectionConfig = {
   admin: {
     defaultColumns: ["bookingCode", "bookingDate", "customer.name", "status"],
     useAsTitle: "bookingCode",
+    group: "Recived Bookings",
   },
   access: {
     read: () => true,

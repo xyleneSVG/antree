@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@innovixx/payload-color-picker-field": "^2.0.4",
     "@payloadcms/db-mongodb": "3.72.0",
     "@payloadcms/db-postgres": "3.72.0",
     "@payloadcms/db-sqlite": "3.72.0",

@@ -1,35 +1,39 @@
-import type { Access } from 'payload'
+import type { Access } from "payload";
+import type { Tenant, User } from "@/payload-types";
 
-import type { Tenant, User } from '../../../payload-types'
-
-import { isSuperAdmin } from '../../../access/isSuperAdmin'
-import { getUserTenantIDs } from '../../../utilities/getUserTenantIDs'
+import { isSuperAdmin } from "@/access/isSuperAdmin";
+import { getUserTenantIDs } from "@/utilities/getUserTenantIDs";
 
 export const createAccess: Access<User> = ({ req }) => {
   if (!req.user) {
-    return false
+    return false;
   }
 
   if (isSuperAdmin(req.user)) {
-    return true
+    return true;
   }
 
-  if (!isSuperAdmin(req.user) && req.data?.roles?.includes('super-admin')) {
-    return false
+  if (req.data?.roles?.some((role: string) => role === "super-admin")) {
+    return false;
   }
 
-  const adminTenantAccessIDs = getUserTenantIDs(req.user, 'tenant-admin')
+  const myAdminTenantIDs = getUserTenantIDs(req.user);
 
-  const requestedTenants: Tenant['id'][] =
-    req.data?.tenants?.map((t: { tenant: Tenant['id'] }) => t.tenant) ?? []
-
-  const hasAccessToAllRequestedTenants = requestedTenants.every((tenantID) =>
-    adminTenantAccessIDs.includes(tenantID),
-  )
-
-  if (hasAccessToAllRequestedTenants) {
-    return true
+  if (myAdminTenantIDs.length === 0) {
+    return false;
   }
 
-  return false
-}
+  const requestedTenants = (req.data?.tenants || []).map((t: any) =>
+    typeof t.tenant === "object" ? t.tenant.id : t.tenant,
+  );
+
+  if (requestedTenants.length === 0) {
+    return false;
+  }
+
+  const isAllowed = requestedTenants.every((tenantID: number) =>
+    myAdminTenantIDs.includes(tenantID),
+  );
+
+  return isAllowed;
+};

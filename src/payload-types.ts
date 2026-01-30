@@ -67,8 +67,8 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    tenants: Tenant;
     users: User;
+    tenants: Tenant;
     services: Service;
     schedules: Schedule;
     bookings: Booking;
@@ -80,8 +80,8 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
     schedules: SchedulesSelect<false> | SchedulesSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
@@ -126,64 +126,19 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenants".
- */
-export interface Tenant {
-  id: number;
-  logo: number | Media;
-  name: string;
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
-  bookingModel: 'single' | 'multi';
-  operatingHours?:
-    | {
-        dayOfWeek: '0' | '1' | '2' | '3' | '4' | '5' | '6';
-        isClosed?: boolean | null;
-        open?: string | null;
-        close?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  domain: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   password?: string | null;
-  roles?: ('super-admin' | 'user')[] | null;
+  roles?: 'super-admin'[] | null;
   username?: string | null;
   specialty?: string | null;
   isActive?: boolean | null;
   tenants?:
     | {
         tenant: number | Tenant;
-        roles: ('tenant-admin' | 'tenant-viewer')[];
+        roles: ('tenant-admin' | 'staff')[];
         id?: string | null;
       }[]
     | null;
@@ -203,6 +158,53 @@ export interface User {
         expiresAt: string;
       }[]
     | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: number;
+  logo: number | Media;
+  name: string;
+  description: string;
+  /**
+   * Pilih warna aksen untuk tenant ini.
+   */
+  accentColor: string;
+  address: string;
+  phone: string;
+  email: string;
+  domain: string;
+  operatingHours?:
+    | {
+        dayOfWeek: '0' | '1' | '2' | '3' | '4' | '5' | '6';
+        isClosed?: boolean | null;
+        open?: string | null;
+        close?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -289,12 +291,12 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'tenants';
-        value: number | Tenant;
-      } | null)
-    | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'tenants';
+        value: number | Tenant;
       } | null)
     | ({
         relationTo: 'services';
@@ -356,31 +358,6 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tenants_select".
- */
-export interface TenantsSelect<T extends boolean = true> {
-  logo?: T;
-  name?: T;
-  description?: T;
-  address?: T;
-  phone?: T;
-  email?: T;
-  bookingModel?: T;
-  operatingHours?:
-    | T
-    | {
-        dayOfWeek?: T;
-        isClosed?: T;
-        open?: T;
-        close?: T;
-        id?: T;
-      };
-  domain?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -412,6 +389,31 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  logo?: T;
+  name?: T;
+  description?: T;
+  accentColor?: T;
+  address?: T;
+  phone?: T;
+  email?: T;
+  domain?: T;
+  operatingHours?:
+    | T
+    | {
+        dayOfWeek?: T;
+        isClosed?: T;
+        open?: T;
+        close?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -477,7 +479,6 @@ export interface BookingsSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
-  tenant?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
