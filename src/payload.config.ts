@@ -60,7 +60,7 @@ export default buildConfig({
       },
       tenantsArrayField: {
         includeDefaultField: true,
-
+        
         arrayFieldAccess: {
           create: (args) => {
             if (isSuperAdmin(args.req.user)) return true;

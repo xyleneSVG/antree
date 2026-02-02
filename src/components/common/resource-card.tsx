@@ -23,7 +23,6 @@ export function ResourceCard({ resource, selected, onSelect }: ResourceCardProps
           : "border-border bg-card hover:border-primary/30"
       )}
     >
-      {/* Selection indicator */}
       <div
         className={cn(
           "absolute top-4 right-4 flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all",
@@ -34,8 +33,6 @@ export function ResourceCard({ resource, selected, onSelect }: ResourceCardProps
       >
         {selected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
       </div>
-      
-      {/* Avatar */}
       <div className={cn(
         "flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300",
         selected

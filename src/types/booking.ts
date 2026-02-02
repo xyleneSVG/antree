@@ -5,7 +5,6 @@ export interface Tenant {
   name: string;
   domain: string;
   logo: Media | string;
-  accentColor: string;
   description: string;
   address: string;
   phone: string;

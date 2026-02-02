@@ -131,7 +131,7 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   password?: string | null;
-  roles?: 'super-admin'[] | null;
+  roles?: ('super-admin' | 'default-account') | null;
   username?: string | null;
   specialty?: string | null;
   isActive?: boolean | null;
@@ -168,10 +168,6 @@ export interface Tenant {
   logo: number | Media;
   name: string;
   description: string;
-  /**
-   * Pilih warna aksen untuk tenant ini.
-   */
-  accentColor: string;
   address: string;
   phone: string;
   email: string;
@@ -398,7 +394,6 @@ export interface TenantsSelect<T extends boolean = true> {
   logo?: T;
   name?: T;
   description?: T;
-  accentColor?: T;
   address?: T;
   phone?: T;
   email?: T;

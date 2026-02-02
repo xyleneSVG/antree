@@ -27,7 +27,7 @@ export const mappingService = (s: any): Service => ({
 export const mappingResource = (r: any): Resource => ({
   id: String(r.id),
   tenantId: getRelationId(r.tenant),
-  name: r.name,
+  name: r.username,
   specialty: r.specialty || "Staf",
   isActive: r.isActive ?? true,
   avatar: formatMediaUrl(r.avatar) || "/avatars/default.jpg",
@@ -44,7 +44,6 @@ export const mappingTenant = (data: PayloadTenant): BookingTenant => ({
       : "/placeholder.png",
 
   description: data.description || `Selamat datang di ${data.name}`,
-  accentColor: data.accentColor || "#000000",
   address: data.address || "",
   phone: data.phone || "",
   email: data.email || "",

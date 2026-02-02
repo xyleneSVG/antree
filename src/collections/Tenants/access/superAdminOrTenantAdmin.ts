@@ -1,25 +1,27 @@
-import { getUserTenantIDs } from '@/utilities/getUserTenantIDs'
-import { isSuperAdmin } from '../../../access/isSuperAdmin'
-import { Access } from 'payload'
+import { getUserTenantIDs } from "@/utilities/getUserTenantIDs";
+import { isSuperAdmin } from "../../../access/isSuperAdmin";
+import { Access } from "payload";
 
-/**
- * Tenant admins and super admins can will be allowed access
- */
-export const superAdminOrTenantAdminAccess: Access = ({ req }) => {
+export const superAdminOrTenantAdminAccess: Access = ({ req, id }) => {
   if (!req.user) {
-    return false
+    return false;
   }
 
   if (isSuperAdmin(req.user)) {
-    return true
+    return true;
   }
 
-  const adminTenantAccessIDs = getUserTenantIDs(req.user, 'tenant-admin')
-  const requestedTenant = req?.data?.tenant
+  const adminTenantAccessIDs = getUserTenantIDs(req.user, "tenant-admin");
 
-  if (requestedTenant && adminTenantAccessIDs.includes(requestedTenant)) {
-    return true
+  if (id) {
+    return adminTenantAccessIDs.includes(
+      typeof id === "string" ? parseInt(id, 10) : id,
+    );
   }
 
-  return false
-}
+  return {
+    id: {
+      in: adminTenantAccessIDs,
+    },
+  };
+};

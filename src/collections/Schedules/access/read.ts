@@ -1,22 +1,16 @@
 import type { Access, Where } from "payload";
-import type { User } from "@/payload-types";
 import { getTenantFromCookie } from "@payloadcms/plugin-multi-tenant/utilities";
 
 import { isSuperAdmin } from "@/access/isSuperAdmin";
-import { isAccessingSelf } from "./isAccessingSelf";
 import { getUserTenantIDs } from "@/utilities/getUserTenantIDs";
 import { getCollectionIDType } from "@/utilities/getCollectionIDType";
 
-export const usersReadAccess: Access<User> = ({ req, id }) => {
+export const schedulesReadAccess: Access = ({ req }) => {
   const { user } = req;
 
   if (!user) return false;
 
   if (isSuperAdmin(user)) return true;
-
-  if (isAccessingSelf({ id, user })) {
-    return true;
-  }
 
   const adminTenantAccessIDs = getUserTenantIDs(user, "tenant-admin");
 
@@ -30,14 +24,14 @@ export const usersReadAccess: Access<User> = ({ req, id }) => {
 
   if (selectedTenant) {
     return {
-      "tenants.tenant": {
+      "resource.tenants.tenant": {
         equals: selectedTenant,
       },
     };
   }
 
   return {
-    "tenants.tenant": {
+    "resource.tenants.tenant": {
       in: adminTenantAccessIDs,
     },
   } as Where;

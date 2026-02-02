@@ -75,9 +75,10 @@ export async function createBooking(data: {
         totalAmount: data.price,
         status: "pending",
         customer: data.customer,
+        tenant: Number(data.tenantId),
       },
 
-      overrideAccess: false,
+      overrideAccess: true,
       req,
     });
 

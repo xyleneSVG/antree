@@ -1,5 +1,4 @@
 import type { CollectionConfig } from "payload";
-import { colorPickerField } from "@innovixx/payload-color-picker-field";
 import { isSuperAdminAccess } from "@/access/isSuperAdmin";
 import { superAdminOrTenantAdminAccess } from "./access/superAdminOrTenantAdmin";
 import { ensureUniqueTenantName } from "./hooks/ensureUniqueName";
@@ -38,15 +37,6 @@ export const Tenants: CollectionConfig = {
       type: "textarea",
       required: true,
     },
-    colorPickerField({
-      name: "accentColor",
-      label: "Accent Color",
-      required: true,
-      admin: {
-        position: "sidebar",
-        description: "Pilih warna aksen untuk tenant ini.",
-      },
-    }),
     {
       name: "address",
       type: "text",

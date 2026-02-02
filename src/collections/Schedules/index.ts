@@ -4,6 +4,9 @@ import {
   validateEndTime,
   validateTimeFormat,
 } from "./validations";
+import { schedulesReadAccess } from "./access/read";
+import { schedulesUpdateAccess } from "./access/updateDelete";
+
 
 export const Schedules: CollectionConfig = {
   slug: "schedules",
@@ -11,6 +14,11 @@ export const Schedules: CollectionConfig = {
     useAsTitle: "resource",
     defaultColumns: ["resource", "updatedAt"],
     group: "Platform Settings",
+  },
+  access: {
+    read: schedulesReadAccess,
+    update: schedulesUpdateAccess,
+    delete: schedulesUpdateAccess,
   },
   fields: [
     {

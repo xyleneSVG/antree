@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Reservasi Online - Klinik Sehat Sentosa',
-  description: 'Sistem reservasi online untuk klinik dan layanan kesehatan. Booking jadwal dokter dengan mudah dan cepat.',
+  title: 'Antree.com - Reservasi Online',
+  description: 'Sistem reservasi online dengan mudah dan cepat.',
   generator: 'v0.app',
   icons: {
     icon: [

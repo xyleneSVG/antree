@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { createAccess } from "./access/create";
-import { readAccess } from "./access/read";
+import { usersReadAccess } from "./access/read";
 import { updateAndDeleteAccess } from "./access/updateAndDelete";
 import { externalUsersLogin } from "./endpoints/externalUsersLogin";
 import { ensureUniqueUsername } from "./hooks/ensureUniqueUsername";
@@ -12,7 +12,7 @@ const Users: CollectionConfig = {
   access: {
     create: createAccess,
     delete: updateAndDeleteAccess,
-    read: readAccess,
+    read: usersReadAccess,
     update: updateAndDeleteAccess,
   },
   admin: {
@@ -22,6 +22,9 @@ const Users: CollectionConfig = {
   },
   auth: true,
   endpoints: [externalUsersLogin],
+  hooks: {
+    afterLogin: [setCookieBasedOnDomain],
+  },
   fields: [
     {
       type: "text",
@@ -37,13 +40,15 @@ const Users: CollectionConfig = {
         },
       },
     },
-
     {
       name: "roles",
       type: "select",
-      defaultValue: [],
-      hasMany: true,
-      options: ["super-admin"],
+      defaultValue: "default-account",
+      hasMany: false,
+      options: [
+        { label: "Super Admin", value: "super-admin" },
+        { label: "Default Account", value: "default-account" },
+      ],
       admin: {
         condition: ({ user }) => isSuperAdmin(user),
       },
@@ -61,7 +66,6 @@ const Users: CollectionConfig = {
       },
       index: true,
     },
-
     {
       name: "specialty",
       type: "text",
@@ -77,9 +81,6 @@ const Users: CollectionConfig = {
       defaultValue: true,
     },
   ],
-  hooks: {
-    afterLogin: [setCookieBasedOnDomain],
-  },
 };
 
 export default Users;

@@ -193,11 +193,19 @@ export const getResources = async (tenantId: string) => {
   const result = await payload.find({
     collection: "users",
     where: {
-      tenant: { equals: tenantId },
-      isActive: { equals: true },
+      "tenants.tenant": {
+        equals: tenantId,
+      },
+      "tenants.roles": {
+        contains: "staff",
+      },
+      isActive: {
+        equals: true,
+      },
     },
     overrideAccess: true,
     req,
   });
+
   return result.docs;
 };

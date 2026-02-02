@@ -1,39 +1,27 @@
 import type { Access } from "payload";
-import type { Tenant, User } from "@/payload-types";
+import type { User } from "@/payload-types";
 
 import { isSuperAdmin } from "@/access/isSuperAdmin";
 import { getUserTenantIDs } from "@/utilities/getUserTenantIDs";
 
 export const createAccess: Access<User> = ({ req }) => {
-  if (!req.user) {
-    return false;
-  }
+  const { user } = req;
 
-  if (isSuperAdmin(req.user)) {
-    return true;
-  }
+  if (!user) return false;
 
-  if (req.data?.roles?.some((role: string) => role === "super-admin")) {
-    return false;
-  }
+  if (isSuperAdmin(user)) return true;
 
-  const myAdminTenantIDs = getUserTenantIDs(req.user);
-
-  if (myAdminTenantIDs.length === 0) {
-    return false;
-  }
-
-  const requestedTenants = (req.data?.tenants || []).map((t: any) =>
-    typeof t.tenant === "object" ? t.tenant.id : t.tenant,
+  const isTenantAdmin = user.tenants?.some((t) =>
+    t.roles?.includes("tenant-admin"),
   );
 
-  if (requestedTenants.length === 0) {
-    return false;
+  if (isTenantAdmin) {
+    return {
+      "tenants.tenant": {
+        in: getUserTenantIDs(user, "tenant-admin"),
+      },
+    };
   }
 
-  const isAllowed = requestedTenants.every((tenantID: number) =>
-    myAdminTenantIDs.includes(tenantID),
-  );
-
-  return isAllowed;
+  return false;
 };
